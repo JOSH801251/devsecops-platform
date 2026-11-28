@@ -16,13 +16,13 @@ spec:
 
         # Operational queue alert. Do not call this an availability SLO/burn alert.
         - alert: APIQueueBacklog
-          expr: sum(api_jobs_pending) > 100
+          expr: max(api_jobs_pending) > 100
           for: 5m
           labels:
             severity: warning
           annotations:
             summary: Job queue is backing up
             description: |
-              api_jobs_pending has exceeded 100 for 5 minutes.
+              The highest API replica api_jobs_pending gauge has exceeded 100 for 5 minutes.
               Check worker health and database connectivity.
 {{- end }}

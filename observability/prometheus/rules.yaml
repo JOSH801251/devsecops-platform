@@ -9,10 +9,10 @@ groups:
 
       # Queue backlog is an operational signal, not an availability SLO.
       - alert: APIQueueBacklog
-        expr: sum(api_jobs_pending) > 100
+        expr: max(api_jobs_pending) > 100
         for: 5m
         labels:
           severity: warning
         annotations:
           summary: "API job queue is backing up"
-          description: "Pending jobs have exceeded 100 for 5 minutes; check worker health and database connectivity."
+          description: "The highest API replica pending-job gauge has exceeded 100 for 5 minutes; check worker health and database connectivity."

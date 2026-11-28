@@ -5,7 +5,7 @@ A GitOps-driven, security-hardened Kubernetes platform for a small API + Worker 
 This is a portfolio project for demonstrating platform engineering decisions, delivery automation, Kubernetes security, and operational visibility. The implementation status and current limitations are called out below rather than implying unfinished capabilities are already live.
 
 [![ci](https://github.com/JOSH801251/devsecops-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/JOSH801251/devsecops-platform/actions/workflows/ci.yml)
-[![license: Apache 2.0](https://img.shields.io/badge/license/Apache--2.0-blue.svg)](LICENSE)
+[![license: Apache 2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 ## Local-first and cost boundaries
 

@@ -33,7 +33,7 @@
       "title": "Jobs pending",
       "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
       "targets": [
-        { "expr": "sum(api_jobs_pending)", "refId": "A" }
+        { "expr": "max(api_jobs_pending)", "refId": "A" }
       ],
       "fieldConfig": {
         "defaults": {
@@ -54,7 +54,7 @@
       "title": "Jobs done (cumulative)",
       "gridPos": { "h": 6, "w": 6, "x": 12, "y": 0 },
       "targets": [
-        { "expr": "sum(api_jobs_done)", "refId": "A" }
+        { "expr": "max(api_jobs_done)", "refId": "A" }
       ]
     },
     {
@@ -90,7 +90,7 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
       "targets": [
         {
-          "expr": "sum(api_jobs_pending)",
+          "expr": "max(api_jobs_pending)",
           "refId": "A",
           "legendFormat": "pending"
         },
