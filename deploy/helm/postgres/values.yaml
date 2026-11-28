@@ -11,7 +11,7 @@ auth:
   database: jobs
   username: app
   password: dev-only-replace-in-phase-2
-
+  secretName: app-postgres
 resources:
   requests:
     cpu: 100m

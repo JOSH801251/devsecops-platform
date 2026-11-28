@@ -4,7 +4,7 @@ Three artifacts live here, each enforcing a different layer:
 
 | File | Engine | What it enforces |
 |---|---|---|
-| `kyverno-trusted-registry.yaml` | Kyverno ClusterPolicy | Reject Pods in `app`/`default` whose images aren't from `ghcr.io/mohidev-tech/*` (plus the explicit postgres allowlist) |
+| `kyverno-trusted-registry.yaml` | Kyverno ClusterPolicy | Reject Pods in `app`/`default` whose images aren't from `ghcr.io/josh801251/*` (plus the explicit postgres allowlist) |
 | `kyverno-require-resources.yaml` | Kyverno ClusterPolicy | Reject Pods missing CPU/memory requests + limits. Excludes platform namespaces we don't own |
 | `disallow-unsigned-images.rego` | OPA/Gatekeeper | Same intent as the Kyverno trusted-registry policy, kept for the Gatekeeper-comparison story |
 

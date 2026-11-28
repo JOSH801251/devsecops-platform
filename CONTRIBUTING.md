@@ -5,7 +5,7 @@ This is a portfolio reference platform — not a production system. PRs that imp
 ## Local development loop
 
 ```bash
-git clone https://github.com/mohidev-tech/devsecops-platform
+git clone https://github.com/JOSH801251/devsecops-platform
 cd devsecops-platform
 
 # Bring it up

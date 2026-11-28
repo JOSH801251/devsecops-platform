@@ -23,8 +23,8 @@ spec:
       validate:
         message: >-
           image {{ request.object.spec.containers[].image }} is not from a
-          trusted registry. Allowed: ghcr.io/mohidev-tech/*, postgres:*
+          trusted registry. Allowed: ghcr.io/josh801251/*, postgres:*
         pattern:
           spec:
             containers:
-              - image: "ghcr.io/mohidev-tech/* | postgres:* | docker.io/library/postgres:*"
+              - image: "ghcr.io/josh801251/* | postgres:* | docker.io/library/postgres:*"

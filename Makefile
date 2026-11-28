@@ -2,7 +2,7 @@
         argocd vault vault-bootstrap policies observe observe-dashboards \
         secure-mode test lint clean
 
-REGISTRY ?= ghcr.io/mohidev-tech
+REGISTRY ?= ghcr.io/josh801251
 TAG      ?= 0.1.0
 
 cluster:

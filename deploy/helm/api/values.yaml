@@ -1,5 +1,5 @@
 image:
-  repository: ghcr.io/mohidev-tech/devsecops-platform-api
+  repository: ghcr.io/josh801251/devsecops-platform-api
   tag: "0.1.0"
   pullPolicy: IfNotPresent
 

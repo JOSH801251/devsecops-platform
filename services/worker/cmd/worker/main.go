@@ -11,7 +11,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/mohidev-tech/devsecops-platform/services/worker/internal/drain"
+	"github.com/josh801251/devsecops-platform/services/worker/internal/drain"
 )
 
 func main() {

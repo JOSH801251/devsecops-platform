@@ -7,7 +7,6 @@ coverage.*
 
 # Terraform
 .terraform/
-.terraform.lock.hcl
 *.tfstate
 *.tfstate.backup
 *.tfvars
@@ -17,3 +16,14 @@ crash.log
 .idea/
 .vscode/
 .DS_Store
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Private keys and credentials
+*.pem
+*.key
+kubeconfig
+kubeconfig.*

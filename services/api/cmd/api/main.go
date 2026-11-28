@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/mohidev-tech/devsecops-platform/services/api/internal/handlers"
-	"github.com/mohidev-tech/devsecops-platform/services/api/internal/jobs"
+	"github.com/josh801251/devsecops-platform/services/api/internal/handlers"
+	"github.com/josh801251/devsecops-platform/services/api/internal/jobs"
 )
 
 func main() {

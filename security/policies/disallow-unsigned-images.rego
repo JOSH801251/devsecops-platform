@@ -7,6 +7,6 @@ deny[msg] {
   input.request.kind.kind == "Pod"
   some i
   image := input.request.object.spec.containers[i].image
-  not startswith(image, "ghcr.io/mohidev-tech/")
+  not startswith(image, "ghcr.io/josh801251/")
   msg := sprintf("image %q is not from a trusted registry", [image])
 }

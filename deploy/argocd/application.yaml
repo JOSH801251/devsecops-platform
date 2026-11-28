@@ -7,7 +7,7 @@ metadata:
 spec:
   description: devsecops-platform applications
   sourceRepos:
-    - https://github.com/mohidev-tech/devsecops-platform.git
+    - https://github.com/JOSH801251/devsecops-platform.git
   destinations:
     - namespace: "*"
       server: https://kubernetes.default.svc
@@ -30,7 +30,7 @@ metadata:
 spec:
   project: devsecops
   source:
-    repoURL: https://github.com/mohidev-tech/devsecops-platform.git
+    repoURL: https://github.com/JOSH801251/devsecops-platform.git
     targetRevision: main
     path: deploy/argocd/apps
   destination:

@@ -4,7 +4,7 @@ A GitOps-driven, security-hardened Kubernetes platform deploying a real multi-se
 
 This is the flagship: the repo that proves I can design, ship, secure, run, and observe software the way a platform-security team does.
 
-[![ci](https://github.com/mohidev-tech/devsecops-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/mohidev-tech/devsecops-platform/actions/workflows/ci.yml)
+[![ci](https://github.com/JOSH801251/devsecops-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/JOSH801251/devsecops-platform/actions/workflows/ci.yml)
 [![license: Apache 2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 ## 💸 Cost story (read this first)

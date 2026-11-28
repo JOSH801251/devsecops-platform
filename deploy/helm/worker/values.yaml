@@ -1,5 +1,5 @@
 image:
-  repository: ghcr.io/mohidev-tech/devsecops-platform-worker
+  repository: ghcr.io/josh801251/devsecops-platform-worker
   tag: "0.1.0"
   pullPolicy: IfNotPresent
 

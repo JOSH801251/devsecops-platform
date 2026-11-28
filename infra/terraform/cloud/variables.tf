@@ -37,7 +37,7 @@ variable "node_desired_size" {
 variable "owner" {
   description = "Tag applied to every resource so accidental survivors are easy to find."
   type        = string
-  default     = "mohidev-tech"
+  default     = "josh801251"
 }
 
 variable "budget_amount_usd" {

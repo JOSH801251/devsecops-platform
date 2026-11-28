@@ -6,7 +6,7 @@ This is a **portfolio reference repo**. It is not deployed anywhere user-facing.
 
 Use GitHub's private vulnerability reporting:
 
-→ [Report a vulnerability](https://github.com/mohidev-tech/devsecops-platform/security/advisories/new)
+→ [Report a vulnerability](https://github.com/JOSH801251/devsecops-platform/security/advisories/new)
 
 Include:
 

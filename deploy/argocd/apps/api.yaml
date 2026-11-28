@@ -8,7 +8,7 @@ metadata:
 spec:
   project: devsecops
   source:
-    repoURL: https://github.com/mohidev-tech/devsecops-platform.git
+    repoURL: https://github.com/JOSH801251/devsecops-platform.git
     targetRevision: main
     path: deploy/helm/api
     helm:

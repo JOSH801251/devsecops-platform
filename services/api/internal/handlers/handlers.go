@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mohidev-tech/devsecops-platform/services/api/internal/jobs"
+	"github.com/josh801251/devsecops-platform/services/api/internal/jobs"
 )
 
 var requestsTotal atomic.Uint64
