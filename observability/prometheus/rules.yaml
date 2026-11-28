@@ -1,16 +1,18 @@
 groups:
-  - name: api.slo
+  - name: api.operations
     interval: 30s
     rules:
+      # The API exports an aggregate request counter without status labels.
+      # This recording rule measures traffic volume, not availability or error rate.
       - record: api:request_rate:5m
         expr: sum(rate(api_requests_total[5m]))
-      - record: api:error_rate:5m
-        expr: sum(rate(api_requests_total{status=~"5.."}[5m])) / sum(rate(api_requests_total[5m]))
-      - alert: APIErrorBudgetBurnFast
-        expr: api:error_rate:5m > (1 - 0.99) * 14.4
+
+      # Queue backlog is an operational signal, not an availability SLO.
+      - alert: APIQueueBacklog
+        expr: sum(api_jobs_pending) > 100
         for: 5m
         labels:
-          severity: page
+          severity: warning
         annotations:
-          summary: "API burning error budget too fast"
-          description: "Error rate {{ $value | humanizePercentage }} over 5m exceeds 14.4x burn rate for 99% SLO."
+          summary: "API job queue is backing up"
+          description: "Pending jobs have exceeded 100 for 5 minutes; check worker health and database connectivity."

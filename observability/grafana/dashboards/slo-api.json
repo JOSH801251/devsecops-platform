@@ -4,7 +4,7 @@
   "tags": ["devsecops-platform", "slo"],
   "timezone": "",
   "schemaVersion": 39,
-  "version": 1,
+  "version": 2,
   "refresh": "30s",
   "time": { "from": "now-1h", "to": "now" },
   "panels": [
@@ -103,42 +103,13 @@
     },
     {
       "id": 20,
-      "type": "stat",
-      "title": "SLO compliance (30d, target 99%)",
-      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 14 },
-      "description": "Wire to a real availability SLI in Phase 3 once we add status-code labels to api_requests_total.",
-      "targets": [
-        {
-          "expr": "vector(0.999)",
-          "refId": "A"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 0.99 },
-              { "color": "green", "value": 0.999 }
-            ]
-          }
-        }
+      "type": "text",
+      "title": "Availability SLI — instrumentation pending",
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 14 },
+      "options": {
+        "mode": "markdown",
+        "content": "### Availability is not measured yet\n\nThe API currently exports `api_requests_total` as an aggregate counter without HTTP status labels. Request volume and queue health are visible above, but a successful-request ratio, 99% availability compliance, and error-budget burn rate cannot be calculated from these metrics.\n\n**The 99% SLO is a target, not an observed result.** Add response-status instrumentation before enabling an availability SLI or burn-rate alert. The current queue-backlog alert is an operational warning, not an SLO alert."
       }
-    },
-    {
-      "id": 21,
-      "type": "timeseries",
-      "title": "Error budget burn rate (placeholder)",
-      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 14 },
-      "description": "Stub. Will plot 5m/1h/6h burn rates once errors are labeled.",
-      "targets": [
-        {
-          "expr": "sum(rate(api_requests_total[5m]))",
-          "refId": "A"
-        }
-      ]
     }
   ],
   "templating": { "list": [] },

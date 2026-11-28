@@ -1,149 +1,160 @@
 # devsecops-platform 🚩
 
-A GitOps-driven, security-hardened Kubernetes platform deploying a real multi-service app — provisioned by **Terraform**, deployed by **Argo CD**, secured by **Vault** + **Trivy**, observed by **Prometheus/Grafana** with an SLO.
+A GitOps-driven, security-hardened Kubernetes platform for a small API + Worker workload. The local path uses **Kind**, provisioned by **Terraform**, deployed with **Helm/Argo CD**, secured with **Kyverno/Vault**, and observed with **Prometheus/Grafana**.
 
-This is the flagship: the repo that proves I can design, ship, secure, run, and observe software the way a platform-security team does.
+This is a portfolio project for demonstrating platform engineering decisions, delivery automation, Kubernetes security, and operational visibility. The implementation status and current limitations are called out below rather than implying unfinished capabilities are already live.
 
 [![ci](https://github.com/JOSH801251/devsecops-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/JOSH801251/devsecops-platform/actions/workflows/ci.yml)
-[![license: Apache 2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![license: Apache 2.0](https://img.shields.io/badge/license/Apache--2.0-blue.svg)](LICENSE)
 
-## 💸 Cost story (read this first)
+## Local-first and cost boundaries
 
-**This entire platform runs on your laptop for $0** via `kind` + Docker. The cloud variant is a single, fully-Terraformed short-lived environment: `terraform apply` → screenshot dashboards → `terraform destroy`. Total cloud spend across the build of this portfolio: **under $5**.
+The default path is designed to run on a developer workstation with Docker and Kind. It does not require an AWS account or cloud infrastructure.
 
-That's not a limitation — it's the design. A "local-first, cloud-fluent" platform is what most companies actually want.
+`infra/terraform/cloud/` is an optional EKS configuration, not a prerequisite for the local project. It has **not** been applied as part of the current local validation. AWS charges depend on region, resource sizes, networking, and runtime; estimate costs before applying and destroy resources when finished. No fixed total cloud-cost claim is made here.
 
 ## Architecture
 
-```mermaid
+~~~mermaid
 flowchart TB
-    subgraph Dev["👤 Developer"]
-      PR[Pull Request]
+    PR[Pull Request / push to main]
+
+    subgraph CI["GitHub Actions"]
+      Go[Go module checks, vet, tests]
+      Infra[Helm lint + Terraform fmt/validate]
+      Build[Build API and Worker images on runner]
+      Scan[Trivy HIGH/CRITICAL image scan]
+      Report[Upload SARIF to GitHub Code Scanning]
     end
 
-    subgraph CI["⚙️ CI — GitHub Actions"]
-      Lint[lint + test]
-      Build[build images]
-      Scan[Trivy SAST + image scan]
-      Sign[cosign sign]
+    PR --> Go
+    PR --> Infra
+    Go --> Build --> Scan --> Report
+
+    subgraph GitOps["GitOps"]
+      Repo[deploy/argocd manifests]
+      Argo[Argo CD app-of-apps]
     end
 
-    subgraph Registry["🗃️ Registry"]
-      GHCR[ghcr.io / signed + SBOM]
-    end
-
-    subgraph GitOps["🔄 GitOps"]
-      Repo[deploy/ manifests]
-      Argo[Argo CD]
-    end
-
-    subgraph K8s["☸️ Kubernetes (kind / EKS)"]
-      Adm{Kyverno<br/>admission}
-      API[api service]
-      Worker[worker service]
-      PG[(Postgres)]
-      Vault[🔐 Vault]
-      Prom[📊 Prometheus]
-      Graf[📈 Grafana]
-    end
-
-    PR --> CI
-    CI --> Lint --> Build --> Scan --> Sign --> GHCR
-    Sign --> Repo
     Repo --> Argo
-    Argo -->|sync| Adm
-    Adm -->|allow trusted images| API
-    Adm -->|allow trusted images| Worker
-    Vault -.->|sidecar inject DB creds| API
+    Argo -->|automated sync| K8s
+
+    subgraph K8s["Kubernetes: Kind by default / optional EKS"]
+      Admission[Kyverno admission]
+      API[API service]
+      Worker[Worker service]
+      PG[(Postgres)]
+      Vault[Optional Vault injector]
+      Prom[Prometheus]
+      Graf[Grafana]
+    end
+
+    Admission --> API
+    Admission --> Worker
     API --> PG
     Worker --> PG
-    API -->|ServiceMonitor| Prom
+    Vault -.->|inject DB URL file when enabled| API
+    API -->|ServiceMonitor /metrics| Prom
     Prom --> Graf
-    Prom -->|14.4x burn rate alert| Alert[📟 Alertmanager]
-```
+~~~
 
-## What this proves
+CI builds images for scanning on the runner; it does not currently publish them to GHCR. The GitOps flow is a separate deployment path: Argo CD watches the configured repository after the root Application is installed.
 
-| Capability | How |
+## What is implemented
+
+| Capability | Current implementation |
 |---|---|
-| **IaC + reproducibility** | Terraform brings up the local cluster (`kind` provider) and the cloud variant (EKS) from the same root module pattern |
-| **GitOps delivery** | Argo CD watches `deploy/argocd/` — merge to `main` ↦ auto-sync ↦ live cluster |
-| **Secrets management** | Vault sidecar injection; no secrets in env, manifests, or images |
-| **Supply chain** | Trivy gates the build; images signed with cosign keyless OIDC; SBOM attached |
-| **Runtime hardening** | Distroless nonroot images, read-only root FS, dropped capabilities, NetworkPolicy default-deny |
-| **Observability + SLO** | Prometheus scrapes both services; Grafana dashboard; one documented SLO with burn-rate alerts |
-| **Autoscaling** | HPA on the api service driven by request-rate metric |
+| **Infrastructure as Code** | Terraform local root provisions a Kind cluster. An optional cloud root describes EKS; validation does not create cloud resources. |
+| **GitOps** | Argo CD app-of-apps watches `deploy/argocd/apps/` and is configured for automated sync/prune/self-heal. |
+| **Secrets** | The basic local install uses a development Kubernetes Secret. The secure-mode path can enable Vault Agent injection and let the API read the database URL from a file. Vault dev credentials and the default Grafana password are demo-only. |
+| **Image scanning** | CI builds API/Worker images locally and scans HIGH/CRITICAL findings with Trivy; SARIF is uploaded to GitHub Code Scanning. Image publishing, signing, and SBOM attestation are not implemented in this workflow yet. |
+| **Runtime hardening** | Distroless/nonroot images, read-only root filesystem, dropped capabilities, and an application NetworkPolicy are configured in the charts. |
+| **Observability** | Prometheus scrapes the API `/metrics` endpoint and tracks aggregate request volume plus pending/completed job counts. The Worker has no metrics endpoint yet. |
+| **Availability SLO** | A 99% objective is documented, but a status-labelled availability SLI and error-budget burn-rate alert are not implemented yet. The current Prometheus alert is an operational queue-backlog warning. |
+| **Autoscaling** | The API HPA targets CPU utilization; it is not driven by request rate. |
 
-## Repo layout
+## Repository layout
 
-```
-services/                Two Go services (api + worker) sharing a Postgres
+~~~
+services/                Go API + Worker sharing a Postgres job queue
 deploy/
-  helm/                  Charts for api, worker, supporting infra
+  helm/                  Charts for API, Worker, and Postgres
   argocd/                Argo CD Application + AppProject manifests
-  kind/                  kind cluster config + bring-up scripts
+  kind/                  Kind cluster configuration
 infra/
-  terraform/local/       Local cluster provisioning (kind provider)
-  terraform/cloud/       EKS variant — apply briefly, then destroy
+  terraform/local/       Local cluster provisioning (Kind provider)
+  terraform/cloud/       Optional EKS configuration — not required locally
 observability/
-  prometheus/            Scrape configs, recording + alerting rules
-  grafana/dashboards/    SLO dashboard JSON
+  prometheus/            kube-prometheus-stack values and operational rules
+  grafana/dashboards/    API request/queue dashboard
 security/
-  vault/                 Vault config, policies, K8s auth setup
-  policies/              OPA/Gatekeeper admission policies
-docs/                    Architecture decision records, runbooks
-.github/workflows/       CI: lint, test, build, scan, sign
-```
+  vault/                 Vault config, policies, Kubernetes auth setup
+  policies/              Kyverno and OPA/Gatekeeper policies
+docs/adr/                Architecture decision records
+scripts/                 Local smoke test
+.github/workflows/       Go checks, Helm/Terraform validation, image scan + SARIF
+~~~
 
 ## Quickstart (local)
 
-```bash
-# Minimum viable: app comes up and processes jobs
-make cluster        # 3-node kind cluster
-make deploy         # build images, install postgres + api + worker
-make smoke          # post 5 jobs, assert worker drained them
+Prerequisites: Docker, Kind, kubectl, Helm, Terraform, and Go 1.25+.
 
-# OR: full secure-mode bring-up (everything below in one target)
-make secure-mode
-```
+~~~bash
+# Create the three-node Kind cluster
+make cluster
 
-Secure-mode layers on, in order:
+# Build/load local images and install Postgres, API, and Worker
+make deploy
 
-```bash
-make policies          # Kyverno admission policies (trusted registry, resource limits)
-make vault-bootstrap   # Vault dev mode + k8s auth + api policy + swap api to vault-injected creds
-make observe           # kube-prometheus-stack + ServiceMonitor + PrometheusRule + SLO dashboard
-make argocd            # Argo CD with app-of-apps; merge-to-main now deploys
-```
+# Post 5 jobs and assert that the Worker drains them
+make smoke
+~~~
 
-```bash
-make destroy           # tear down the kind cluster
-```
+For the optional security and observability components:
 
-## Cloud variant — one-time demo
+~~~bash
+make policies          # Kyverno admission policies
+make vault-bootstrap   # Vault dev mode + Kubernetes auth + API secret injection
+make observe           # kube-prometheus-stack + API ServiceMonitor/PrometheusRule + dashboard
+make argocd            # Argo CD app-of-apps
+~~~
 
-```bash
+`make secure-mode` combines the local bring-up sequence. For cleanup:
+
+~~~bash
+make destroy
+~~~
+
+The default Grafana `admin/admin` credential and Vault dev-mode root token are strictly for a disposable local demonstration. Override credentials and use an appropriate production Vault configuration before sharing or reusing the cluster.
+
+## Optional cloud variant
+
+The EKS root is optional and requires valid AWS credentials. It was not applied during the current project validation. Review the Terraform plan and current AWS pricing before creating anything:
+
+~~~bash
 cd infra/terraform/cloud
-terraform apply -auto-approve     # ~10 min, ~$0.15/hour
-make deploy && make smoke          # same Helm charts on EKS
-terraform destroy -auto-approve   # ALWAYS run this when done
-```
+terraform init
+terraform plan
+terraform apply
+# When the demo is complete:
+terraform destroy
+~~~
 
-See [infra/terraform/cloud/README.md](infra/terraform/cloud/README.md) for the full cost breakdown.
+Do not use `-auto-approve` for a first run. Confirm the resources and estimated charges in the plan before applying. See [infra/terraform/cloud/README.md](infra/terraform/cloud/README.md) for the module's design notes.
 
 ## Roadmap
 
-- [x] **Phase 1a** — Scaffold: services, Helm, kind, Terraform local
-- [x] **Phase 1b** — Functional: api persists jobs to Postgres, worker drains via `FOR UPDATE SKIP LOCKED`, `make deploy && make smoke` is green
-- [x] **Phase 1c** — Cloud variant: EKS via Terraform with public-subnet/SPOT cost discipline
-- [x] **Phase 2a** — Vault sidecar injection replaces plaintext DB creds (ADR 0004)
-- [x] **Phase 2b** — Kyverno admission policies: trusted-registry + require-resources
-- [x] **Phase 2c** — Argo CD app-of-apps wiring `deploy/argocd/apps/*`
-- [x] **Phase 2d** — kube-prometheus-stack + ServiceMonitor + 14.4x burn-rate alert + Grafana SLO dashboard
-- [ ] **Phase 3 (satellite)** — `secure-supply-chain`: cosign-signed images, SBOM at release, admission verification
-- [ ] **Stretch** — Chaos lab, canary deploys, AI risk scoring on scan results
+- [x] **Phase 1a** — Scaffold: services, Helm, Kind, Terraform local
+- [x] **Phase 1b** — Functional: API persists jobs to Postgres; Worker drains via `FOR UPDATE SKIP LOCKED`
+- [x] **Phase 1c** — Optional cloud variant: EKS Terraform configuration
+- [x] **Phase 2a** — Vault Agent sidecar injection path (ADR 0004)
+- [x] **Phase 2b** — Kyverno admission policies: trusted registry + resource requirements
+- [x] **Phase 2c** — Argo CD app-of-apps wiring
+- [x] **Phase 2d** — kube-prometheus-stack, API ServiceMonitor, queue alert, Grafana dashboard
+- [ ] **Phase 3** — HTTP status metrics and a measured availability SLI; image publishing, cosign signing, and SBOM attestation
+- [ ] **Stretch** — Chaos lab, canary deployments, and further policy automation
 
-See [docs/adr/](docs/adr/) for architecture decisions.
+See [docs/adr/](docs/adr/) for architecture decisions, including the current implementation boundaries in [ADR 0005](docs/adr/0005-ci-and-observability-scope.md).
 
 ## License
 

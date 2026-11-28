@@ -7,45 +7,22 @@ metadata:
     release: kps
 spec:
   groups:
-    - name: api.slo
+    - name: api.operations
       interval: 30s
       rules:
-        # Total + error rates from the api's counter.
-        # api_requests_total is incremented on every request; api_jobs_done
-        # and api_jobs_pending are gauges that reflect queue state.
+        # Aggregate request volume is available; response status is not labelled yet.
         - record: api:request_rate:5m
           expr: sum(rate(api_requests_total[5m]))
 
-        # 14.4x burn rate over 5m → alerts within ~5m of breaching a 99% SLO
-        # over a 30-day window (multi-window/multi-burn-rate, fast path).
-        # See: https://sre.google/workbook/alerting-on-slos/
-        - alert: APIErrorBudgetBurnFast
-          expr: |
-            (
-              sum(rate(api_requests_total[5m])) > 0
-            )
-            and on()
-            (
-              (api:request_rate:5m) > (1 - 0.99) * 14.4 * 10
-            )
-          for: 2m
-          labels:
-            severity: page
-            slo: api-availability
-          annotations:
-            summary: API burning 30-day error budget too fast
-            description: |
-              The api is consuming error budget at >14.4x the sustainable rate
-              for the past 5 minutes. Current request rate: {{`{{ $value | humanize }}`}}/s.
-
-        # Queue health — operational, not SLO. Useful for dashboards.
+        # Operational queue alert. Do not call this an availability SLO/burn alert.
         - alert: APIQueueBacklog
-          expr: api_jobs_pending > 100
+          expr: sum(api_jobs_pending) > 100
           for: 5m
           labels:
             severity: warning
           annotations:
             summary: Job queue is backing up
             description: |
-              api_jobs_pending = {{`{{ $value }}`}} for 5m. Worker may be slow or down.
+              api_jobs_pending has exceeded 100 for 5 minutes.
+              Check worker health and database connectivity.
 {{- end }}

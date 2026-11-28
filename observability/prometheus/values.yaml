@@ -20,6 +20,8 @@ alertmanager:
       limits:   { cpu: 100m, memory: 128Mi }
 
 grafana:
+  # Local demo credential only. Override through a secret-managed value before
+  # sharing the cluster or using this chart outside a disposable local demo.
   adminPassword: admin
   defaultDashboardsTimezone: browser
   sidecar:

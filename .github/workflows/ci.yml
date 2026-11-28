@@ -6,11 +6,9 @@ on:
   pull_request:
     branches: [main]
 
+# Default to read-only access. Jobs request additional permissions only when needed.
 permissions:
   contents: read
-  security-events: write
-  packages: write
-  id-token: write
 
 jobs:
   test:
@@ -23,9 +21,12 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: "1.25"
-      - name: go mod tidy
+      - name: Verify Go module files are tidy
         working-directory: services/${{ matrix.service }}
-        run: go mod tidy
+        run: go mod tidy -diff
+      - name: Verify downloaded modules
+        working-directory: services/${{ matrix.service }}
+        run: go mod verify
       - name: go vet
         working-directory: services/${{ matrix.service }}
         run: go vet ./...
@@ -55,6 +56,9 @@ jobs:
   build-scan:
     runs-on: ubuntu-latest
     needs: [test, helm-lint]
+    permissions:
+      contents: read
+      security-events: write
     strategy:
       matrix:
         service: [api, worker]
